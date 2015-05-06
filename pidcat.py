@@ -56,6 +56,7 @@ named_processes = filter(lambda package: package.find(":") != -1, args.package)
 named_processes = map(lambda package: package if package.find(":") != len(package) - 1 else package[:-1], named_processes)
 
 header_size = args.tag_width + 1 + 3 + 1 # space, level, space
+timestamp_size = len(' 23:59:59.999')
 
 width = -1
 try:
@@ -82,7 +83,7 @@ def indent_wrap(message):
   if width == -1:
     return message
   message = message.replace('\t', '    ')
-  wrap_area = width - header_size
+  wrap_area = width - header_size - timestamp_size
   messagebuf = ''
   current = 0
   while current < len(message):
@@ -271,7 +272,8 @@ while adb.poll() is None:
   if log_line is None:
     continue
 
-  owner, level, tag, message = log_line.groups()
+  time, owner, level, tag, message = log_line.groups()
+
   tag = tag.strip()
   start = parse_start_proc(line)
   if start:
@@ -340,5 +342,14 @@ while adb.poll() is None:
     replace = RULES[matcher]
     message = matcher.sub(replace, message)
 
+  padding = width - header_size - timestamp_size - len(message)
   linebuf += indent_wrap(message)
+
+  if padding > 0:
+    linebuf += ' ' * padding + ' '
+    linebuf += '\033[90m' + time + RESET
+  else:
+    i = linebuf.find('\n')
+    linebuf = linebuf[:i] + ' \033[90m' + time + RESET + linebuf[i:]
+
   print(linebuf.encode('utf-8'))
