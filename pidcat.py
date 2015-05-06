@@ -324,7 +324,7 @@ while adb.poll() is None:
   if tag != last_tag or args.always_tags:
     last_tag = tag
     color = allocate_color(tag)
-    tag = tag[-args.tag_width:].rjust(args.tag_width)
+    tag = tag[:args.tag_width].rjust(args.tag_width)
     linebuf += colorize(tag, fg=color)
   else:
     linebuf += ' ' * args.tag_width
