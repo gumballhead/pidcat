@@ -345,11 +345,16 @@ while adb.poll() is None:
   padding = width - header_size - timestamp_size - len(message)
   linebuf += indent_wrap(message)
 
+  index = linebuf.find(message[:padding])
+  if level == 'E':
+    linebuf = linebuf[:index] + colorize(linebuf[index:], fg=RED)
+
   if padding > 0:
     linebuf += ' ' * padding + ' '
+    if level == 'E': linebuf = linebuf[:index] + colorize(linebuf[index:], fg=RED)
     linebuf += '\033[90m' + time + RESET
   else:
     i = linebuf.find('\n')
-    linebuf = linebuf[:i] + ' \033[90m' + time + RESET + linebuf[i:]
+    linebuf = linebuf[:i] + ' \033[90m' + time + RESET + (colorize(linebuf[i:], fg=RED) if level == 'E' else linebuf[i:])
 
   print(linebuf.encode('utf-8'))
